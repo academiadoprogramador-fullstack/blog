@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkblog=self.webpackChunkblog||[]).push([[583],{6107:(e,r,s)=>{s.r(r),s.d(r,{default:()=>n});var t=s(6347),u=s(4848);function n(){return(0,u.jsx)(t.rd,{to:"/docs/intro"})}}}]);
