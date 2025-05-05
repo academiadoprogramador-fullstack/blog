@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkblog=self.webpackChunkblog||[]).push([[4441],{5635:a=>{a.exports=JSON.parse('{"tags":[{"label":"excalidraw","permalink":"/blog/docs/tags/excalidraw","count":5}]}')}}]);
