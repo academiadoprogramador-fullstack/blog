@@ -1,0 +1,464 @@
+
+## Introdução
+
+O **ASP.NET Core** é um **framework de desenvolvimento web** da Microsoft. Ele permite que você crie **APIs**, **sites** e **aplicações web em tempo real**, tudo com **alta performance**, **multiplataforma** e com **arquitetura moderna baseada em injeção de dependência e middlewares**.
+
+### Servidor Web
+
+Quando você cria um projeto ASP.NET Core, você está basicamente **criando um servidor web** que vai responder a requisições HTTP.
+
+```cs
+static void Main(string[] args)
+{
+	// construtor do servidor, responsável por configurar as dependências
+    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+	// cria uma instância do servidor baseada na configuração do builder
+    WebApplication app = builder.Build(); 
+	
+	// inicia o loop do servidor web, escutando requisições
+    app.Run();
+}
+```
+
+## Implementações da Aula
+
+### Hello World
+
+```cs
+static Task OlaMundo(HttpContext context)
+{
+	context.Response.ContentType = "text/plain; charset=utf-8";
+
+	return context.Response.WriteAsync("Olá, mundo!");
+}
+```
+
+### Página Inicial
+
+```cs
+static Task PaginaInicial(HttpContext context)
+{
+	string conteudo = File.ReadAllText("Html/PaginaInicial.html");
+
+	return context.Response.WriteAsync(conteudo);
+}
+```
+
+```html
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8" />
+        <title>Início - Gestão de Equipamentos</title>
+    </head>
+    <body>
+        <h1>Gestão de Equipamentos</h1>
+
+        <h3>Fabricantes</h3>
+
+        <ul>
+            <li><a href="/fabricantes/cadastrar">Cadastrar Novo Fabricante</a></li>
+            <li><a href="/fabricantes/visualizar">Visualizar Fabricantes</a></li>
+        </ul>
+    </body>
+</html>
+```
+
+### Notificação (HTML)
+
+```html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <title>Notificação - Gestão de Equipamentos</title>
+</head>
+<body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+
+    <hr />
+
+    <h3>Notificação</h3>
+
+    <p>#mensagem#</p>
+
+</body>
+</html>
+```
+
+### Visualizar Fabricantes (Plaintext)
+
+```cs
+static Task VisualizarFabricantes(HttpContext context)
+{
+	ContextoDados contextoDados = new ContextoDados(true);
+	IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+	List<Fabricante> fabricantes = repositorioFabricante.SelecionarRegistros();
+
+	StringBuilder sb = new StringBuilder();
+
+	foreach (Fabricante f in fabricantes)
+		sb.AppendLine(f.ToString());
+
+	string fabricantesString = sb.ToString();
+
+	context.Response.ContentType = "text/plain; charset=utf-8";
+
+	return context.Response.WriteAsync(fabricantesString);
+}
+```
+
+### Visualizar Fabricantes (HTML)
+
+```cs
+static Task VisualizarFabricantes(HttpContext context)
+{
+    ContextoDados contextoDados = new ContextoDados(true);
+    IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+    List<Fabricante> fabricantes = repositorioFabricante.SelecionarRegistros();
+
+    string conteudo = File.ReadAllText("Html/VisualizarFabricantes.html");
+
+    StringBuilder sb = new StringBuilder(conteudo);
+
+    foreach (Fabricante f in fabricantes)
+    {
+        string itemLista = $"<li>{f.ToString()} / <a href=\"/fabricantes/editar/{f.Id}\">Editar</a> / <a href=\"/fabricantes/excluir/{f.Id}\">Excluir</a></li> #fabricante#";
+
+        sb.Replace("#fabricante#", itemLista);
+    }
+
+    sb.Replace("#fabricante#", "");
+
+    string conteudoString = sb.ToString();
+
+    return context.Response.WriteAsync(conteudoString);
+}
+```
+
+#### HTML
+
+```html
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8" />
+        <title>Visualização de Fabricantes - Gestão de Equipamentos</title>
+    </head>
+    <body>
+        <h1>Gestão de Equipamentos</h1>
+
+        <hr />
+
+        <a href="/">Página Inicial</a> /
+        <a href="/fabricantes/cadastrar">Cadastrar Novo Fabricante</a> /
+
+        <hr />
+
+        <h3>Visualização de Fabricantes</h3>
+
+        <ul>
+            #fabricante#
+        </ul>
+    </body>
+</html>
+```
+
+### Cadastrar Fabricante (GET e POST)
+
+```cs
+static Task FormularioCadastrarFabricante(HttpContext context)
+{
+    string form = File.ReadAllText("Html/CadastrarFabricante.html");
+
+    return context.Response.WriteAsync(form);
+}
+
+static Task CadastrarFabricante(HttpContext context)
+{
+    ContextoDados contextoDados = new ContextoDados(true);
+    IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+    
+    string nome = context.Request.Form["nome"].ToString();
+    string email = context.Request.Form["email"].ToString();
+    string telefone = context.Request.Form["telefone"].ToString();
+
+    Fabricante novoFabricante = new Fabricante(nome, email, telefone);
+
+    repositorioFabricante.CadastrarRegistro(novoFabricante);
+
+    string conteudo = File.ReadAllText("Html/Notificacao.html");
+
+    StringBuilder sb = new StringBuilder(conteudo);
+
+    sb.Replace("#mensagem#", $"O registro \"{novoFabricante.Nome}\" foi cadastrado com sucesso!");
+
+    string conteudoString = sb.ToString();
+
+    return context.Response.WriteAsync(conteudoString);
+}
+```
+
+#### HTML
+
+```html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <title>Cadastro de Fabricante - Gestão de Equipamentos</title>
+</head>
+<body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+    <a href="/fabricantes/visualizar">Visualizar Fabricantes</a>
+
+    <hr />
+
+    <h3>Cadastro de Fabricante</h3>
+
+    <form action="/fabricantes/cadastrar" method="post">
+        <label>Nome do Fabricante:</label>
+        <br />
+        <input type="text" name="nome" />
+
+        <br />
+
+        <label>Email do Fabricante:</label>
+        <br />
+        <input type="text" name="email" />
+
+        <br />
+
+        <label>Telefone do Fabricante:</label>
+        <br />
+        <input type="text" name="telefone" />
+
+        <hr />
+
+        <button>Gravar</button>
+    </form>
+
+
+</body>
+</html>
+```
+
+### Editar Fabricante (GET e POST)
+
+```cs
+static Task FormularioEditarFabricante(HttpContext context)
+{
+    ContextoDados contextoDados = new ContextoDados(true);
+    IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+    int id = Convert.ToInt32(context.GetRouteValue("id"));
+
+    Fabricante fabricante = repositorioFabricante.SelecionarRegistroPorId(id);
+
+    string conteudo = File.ReadAllText("Html/EditarFabricante.html");
+
+    StringBuilder sb = new StringBuilder(conteudo);
+
+    sb.Replace("#id#", id.ToString());
+    sb.Replace("#nome#", fabricante.Nome);
+    sb.Replace("#email#", fabricante.Email);
+    sb.Replace("#telefone#",fabricante.Telefone);
+
+    string conteudoString = sb.ToString();
+
+    return context.Response.WriteAsync(conteudoString);
+}
+
+static Task EditarFabricante(HttpContext context)
+{
+    ContextoDados contextoDados = new ContextoDados(true);
+    IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+    string nome = context.Request.Form["nome"].ToString();
+    string email = context.Request.Form["email"].ToString();
+    string telefone = context.Request.Form["telefone"].ToString();
+
+    Fabricante fabricanteAtualizado = new Fabricante(nome, email, telefone);
+
+    int id = Convert.ToInt32(context.GetRouteValue("id"));
+
+    repositorioFabricante.EditarRegistro(id, fabricanteAtualizado);
+
+    string conteudo = File.ReadAllText("Html/Notificacao.html");
+
+    StringBuilder sb = new StringBuilder(conteudo);
+
+    sb.Replace("#mensagem#", $"O registro \"{fabricanteAtualizado.Nome}\" foi editado com sucesso!");
+
+    string conteudoString = sb.ToString();
+
+    return context.Response.WriteAsync(conteudoString);
+}
+```
+
+#### HTML
+
+```html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <title>Edição de Fabricante - Gestão de Equipamentos</title>
+</head>
+<body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+    <a href="/fabricantes/cadastrar">Cadastrar Novo Fabricante</a> /
+    <a href="/fabricantes/visualizar">Visualizar Fabricantes</a>
+
+    <hr />
+
+    <h3>Edição de Fabricante</h3>
+
+    <form action="/fabricantes/editar/#id#" method="post">
+        <label>Nome do Fabricante:</label>
+        <br />
+        <input type="text" name="nome" value="#nome#" />
+
+        <br />
+
+        <label>Email do Fabricante:</label>
+        <br />
+        <input type="text" name="email" value="#email#" />
+
+        <br />
+
+        <label>Telefone do Fabricante:</label>
+        <br />
+        <input type="text" name="telefone" value="#telefone#" />
+
+        <hr />
+
+        <button>Gravar</button>
+    </form>
+</body>
+</html>
+```
+
+### Excluir Fabricante (GET e POST)
+
+```cs
+static Task FormularioExcluirFabricante(HttpContext context)
+{
+    ContextoDados contextoDados = new ContextoDados(true);
+    IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+    int id = Convert.ToInt32(context.GetRouteValue("id"));
+
+    Fabricante fabricante = repositorioFabricante.SelecionarRegistroPorId(id);
+
+    string conteudo = File.ReadAllText("Html/ExcluirFabricante.html");
+
+    StringBuilder sb = new StringBuilder(conteudo);
+
+    sb.Replace("#id#", id.ToString());
+    sb.Replace("#fabricante#", fabricante.Nome);
+
+    string conteudoString = sb.ToString();
+
+    return context.Response.WriteAsync(conteudoString);
+}
+
+static Task ExcluirFabricante(HttpContext context)
+{
+    ContextoDados contextoDados = new ContextoDados(true);
+    IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+    int id = Convert.ToInt32(context.GetRouteValue("id"));
+
+    repositorioFabricante.ExcluirRegistro(id);
+
+    string conteudo = File.ReadAllText("Html/Notificacao.html");
+
+    StringBuilder sb = new StringBuilder(conteudo);
+
+    sb.Replace("#mensagem#", $"O registro \"{id}\" foi excluído com sucesso!");
+
+    string conteudoString = sb.ToString();
+
+    return context.Response.WriteAsync(conteudoString);
+}
+```
+
+#### HTML
+
+```html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <title>Exclusão de Fabricante - Gestão de Equipamentos</title>
+</head>
+<body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+    <a href="/fabricantes/cadastrar">Cadastrar Novo Fabricante</a> /
+    <a href="/fabricantes/visualizar">Visualizar Fabricantes</a>
+
+    <hr />
+
+    <h3>Exclusão de Fabricante</h3>
+
+    <p>Tem certeza que deseja excluir o registro #fabricante#?</p>
+
+    <form action="/fabricantes/excluir/#id#" method="post">
+        <button type="submit">Gravar</button>
+        <a type="button" href="/fabricantes/visualizar">Voltar</a>
+    </form>
+</body>
+</html>
+```
+
+### Program.cs Completo
+
+```cs
+static void Main(string[] args)
+{
+    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+    WebApplication app = builder.Build();
+
+    ContextoDados contextoDados = new ContextoDados(true);
+    IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+    if (repositorioFabricante.SelecionarRegistros().Count < 1)
+        repositorioFabricante.CadastrarRegistro(new Fabricante("Dell", "contato@dell.com", "21 3222-3322"));
+
+    app.MapGet("/", PaginaInicial);
+
+    app.MapGet("/fabricantes/cadastrar", FormularioCadastrarFabricante);
+    app.MapPost("/fabricantes/cadastrar", CadastrarFabricante);
+
+    app.MapGet("/fabricantes/editar/{id:int}", FormularioEditarFabricante);
+    app.MapPost("/fabricantes/editar/{id:int}", EditarFabricante);
+
+    app.MapGet("/fabricantes/excluir/{id:int}", FormularioExcluirFabricante);
+    app.MapPost("/fabricantes/excluir/{id:int}", ExcluirFabricante);
+
+    app.MapGet("/fabricantes/visualizar", VisualizarFabricantes);
+
+    app.Run();
+}
+```
