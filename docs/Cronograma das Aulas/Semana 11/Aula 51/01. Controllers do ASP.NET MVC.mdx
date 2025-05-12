@@ -1,0 +1,235 @@
+## Introdução
+
+```cs
+static void Main(string[] args)
+{
+	// criar um servidor web
+	WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+	builder.Services.AddControllers();
+
+	WebApplication app = builder.Build();
+
+	// mapeamento de rotas
+	app.MapGet("/", PaginaInicial);
+
+	app.MapGet("/fabricantes/cadastrar", ExibirFormularioCadastroFabricante);
+	app.MapPost("/fabricantes/cadastrar", CadastrarFabricante);
+
+	app.MapGet("/fabricantes/editar/{id:int}", ExibirFormularioEdicaoFabricante);
+	app.MapPost("/fabricantes/editar/{id:int}", EditarFabricante);
+
+	app.MapGet("/fabricantes/excluir/{id:int}", ExibirFormularioExclusaoFabricante);
+	app.MapPost("/fabricantes/excluir/{id:int}", ExcluirFabricante);
+
+	app.MapGet("/fabricantes/visualizar", VisualizarFabricantes);
+
+	app.MapControllers();
+
+	app.Run();
+}
+```
+
+No modelo inicial que fizemos:
+
+- O **programa ASP.NET é responsável por mapear cada rota de forma explícita, dentro do `Program.cs`**.
+- Cada rota (`app.MapGet(...)`, `app.MapPost(...)`) recebe uma função anônima (`Task` ou `Func<HttpContext, Task>`) que acessa diretamente o `HttpContext`.
+- A responsabilidade de buscar dados, tratar o HTML, e construir as respostas está toda centralizada ali mesmo.
+
+## Utilizando Controllers do ASP.NET MVC
+
+Iremos criar uma nova classe chamada `ControladorInicial` na pasta `Controllers`.
+
+```cs
+[Route("/")]
+public class ControladorInicial : Controller
+{
+    [HttpGet]
+    public IActionResult PaginaInicial()
+    {
+        string conteudo = System.IO.File.ReadAllText("Compartilhado/Html/PaginaInicial.html");
+
+        return Content(conteudo, "text/html");
+    }
+}
+```
+
+| Código                                         | Explicação                                                                                       |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `[Route("/")]`                                 | Define que esse controller responderá à rota raiz (`/`).                                         |
+| `public class ControladorInicial : Controller` | Herdando de `Controller`, agora temos acesso a métodos como `Content()`, `View()`, `Redirect()`. |
+| `[HttpGet]`                                    | Esse método será chamado quando alguém acessar `GET /`.                                          |
+| `Content(conteudo, "text/html")`               | Retorna o conteúdo HTML lido diretamente do arquivo.                                             |
+
+Você pode **remover o `app.MapGet("/", PaginaInicial)`** e incluir as linhas `AddControllers` e `MapControllers`:
+
+```cs
+static void Main(string[] args)
+{
+	// cria um servidor web
+	WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+	// procura controladores no código fonte
+	builder.Services.AddControllers();
+
+	WebApplication app = builder.Build();
+
+	// mapeamento de rotas
+	// rotas de fabricantes
+
+	// mapeia controladores obtidos para o servidor
+	app.MapControllers();
+
+	app.Run();
+}
+```
+
+Agora, mantemos toda a lógica de apresentação da página inicial isolada no `ControladorInicial`.
+## Controlador de Fabricante
+
+Ao migrar para o modelo de **Controllers**, você adota o padrão de arquitetura **MVC (Model-View-Controller)**, onde Controllers passam a ser classes dedicadas, herdando de `Controller`.
+
+- Cada **controller agrupa rotas relacionadas a um contexto específico** (`Fabricante`, `Equipamento`, `Chamado`, etc.).
+- As rotas são organizadas com **atributos `[Route]`, `[HttpGet]`, `[HttpPost]`**, sem necessidade de mapear tudo no `Program.cs`.
+- O ASP.NET cuida **automaticamente do roteamento, do binding de dados e da criação das respostas HTTP**, deixando o código mais limpo.
+### Retorno de HTML com ActionResults
+
+```cs
+[Route("fabricantes")]
+public class ControladorFabricante : Controller
+{
+    [HttpGet("cadastrar")]
+    public IActionResult ExibirFormularioCadastroFabricante()
+    {
+        string conteudo = System.IO.File.ReadAllText("ModuloFabricante/Html/Cadastrar.html");
+
+        return Content(conteudo, "text/html");
+    }
+
+    [HttpPost("cadastrar")]
+    public IActionResult CadastrarFabricante([FromForm] string nome, [FromForm] string email, [FromForm] string telefone)
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        Fabricante novoFabricante = new Fabricante(nome, email, telefone);
+
+        repositorioFabricante.CadastrarRegistro(novoFabricante);
+
+        string conteudo = System.IO.File.ReadAllText("Compartilhado/Html/Notificacao.html");
+
+        StringBuilder sb = new StringBuilder(conteudo);
+        sb.Replace("#mensagem#", $"O registro \"{novoFabricante.Nome}\" foi cadastrado com sucesso!");
+
+        return Content(sb.ToString(), "text/html");
+    }
+
+    [HttpGet("editar/{id:int}")]
+    public IActionResult ExibirFormularioEdicaoFabricante(int id)
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        Fabricante fabricanteSelecionado = repositorioFabricante.SelecionarRegistroPorId(id);
+
+        string conteudo = System.IO.File.ReadAllText("ModuloFabricante/Html/Editar.html");
+
+        StringBuilder sb = new StringBuilder(conteudo);
+        sb.Replace("#id#", id.ToString());
+        sb.Replace("#nome#", fabricanteSelecionado.Nome);
+        sb.Replace("#email#", fabricanteSelecionado.Email);
+        sb.Replace("#telefone#", fabricanteSelecionado.Telefone);
+
+        return Content(sb.ToString(), "text/html");
+    }
+
+    [HttpPost("editar/{id:int}")]
+    public IActionResult EditarFabricante(int id, [FromForm] string nome, [FromForm] string email, [FromForm] string telefone)
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        Fabricante fabricanteAtualizado = new Fabricante(nome, email, telefone);
+
+        repositorioFabricante.EditarRegistro(id, fabricanteAtualizado);
+
+        string conteudo = System.IO.File.ReadAllText("Compartilhado/Html/Notificacao.html");
+
+        StringBuilder sb = new StringBuilder(conteudo);
+        sb.Replace("#mensagem#", $"O registro \"{fabricanteAtualizado.Nome}\" foi editado com sucesso!");
+
+        return Content(sb.ToString(), "text/html");
+    }
+
+    [HttpGet("excluir/{id:int}")]
+    public IActionResult ExibirFormularioExclusaoFabricante(int id)
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        Fabricante fabricanteSelecionado = repositorioFabricante.SelecionarRegistroPorId(id);
+
+        string conteudo = System.IO.File.ReadAllText("ModuloFabricante/Html/Excluir.html");
+
+        StringBuilder sb = new StringBuilder(conteudo);
+        sb.Replace("#id#", id.ToString());
+        sb.Replace("#fabricante#", fabricanteSelecionado.Nome);
+
+        return Content(sb.ToString(), "text/html");
+    }
+
+    [HttpPost("excluir/{id:int}")]
+    public IActionResult ExcluirFabricante(int id)
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        repositorioFabricante.ExcluirRegistro(id);
+
+        string conteudo = System.IO.File.ReadAllText("Compartilhado/Html/Notificacao.html");
+
+        StringBuilder sb = new StringBuilder(conteudo);
+        sb.Replace("#mensagem#", $"O registro foi excluído com sucesso!");
+
+        return Content(sb.ToString(), "text/html");
+    }
+
+    [HttpGet("visualizar")]
+    public IActionResult VisualizarFabricantes()
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        string conteudo = System.IO.File.ReadAllText("ModuloFabricante/Html/Visualizar.html");
+
+        StringBuilder sb = new StringBuilder(conteudo);
+
+        List<Fabricante> fabricantes = repositorioFabricante.SelecionarRegistros();
+
+        foreach (Fabricante f in fabricantes)
+        {
+            string itemLista = $"<li>{f} / <a href=\"/fabricantes/editar/{f.Id}\">Editar</a> / <a href=\"/fabricantes/excluir/{f.Id}\">Excluir</a> </li> #fabricante#";
+            sb.Replace("#fabricante#", itemLista);
+        }
+
+        sb.Replace("#fabricante#", "");
+
+        return Content(sb.ToString(), "text/html");
+    }
+}
+```
+
+Agora, o ASP.NET reconhece:
+
+- Que essa classe atende rotas que começam com **`/fabricantes`**.
+- Que esse método atende especificamente ao verbo **GET na rota `/fabricantes/cadastrar`**.
+
+A **requisição é automaticamente roteada e os parâmetros são convertidos (`model binding`)**.
+
+| Antigo (`HttpContext`)                                                      | Novo (`Controllers`)                                                                      |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Mapear rotas manualmente no `Program.cs` com `app.MapGet(...)`              | Deixar o ASP.NET mapear as rotas automaticamente com `[Route]`, `[HttpGet]`, `[HttpPost]` |
+| Manipular `HttpContext` diretamente                                         | Usar `IActionResult` e helpers como `Content`, `View`, `Redirect`                         |
+| Dados enviados pelo usuário recuperados com `context.Request.Form["campo"]` | ASP.NET faz o binding automático com `[FromForm]`, `[FromRoute]`, `[FromQuery]`           |
+| Difícil reutilização e testes                                               | Controllers isolados, fáceis de testar e evoluir                                          |
+| Código monolítico e centralizado no `Program.cs`                            | Código organizado em controllers separados                                                |
