@@ -1,0 +1,102 @@
+## Introdução
+
+Antes de falar de **Models** e **ViewModels**, é importante lembrar o que é **MVC**:
+
+| Componente     | Responsabilidade                                      |
+| -------------- | ----------------------------------------------------- |
+| **Model**      | Representa os dados e as regras de negócio.           |
+| **View**       | Exibe as informações ao usuário (interface).          |
+| **Controller** | Faz a ponte entre View e Model, processa requisições. |
+## O que é um **Model**?
+
+Um **Model** é uma **classe que representa uma entidade do domínio da aplicação**, ou seja, o "mundo real" que a aplicação está modelando.
+
+### Características
+
+- Representa tabelas do banco de dados.
+- Contém regras de negócio ou validação.
+- Contém apenas os dados essenciais (normalmente reflete a estrutura do banco de dados).
+- Usado por **camadas de serviço, repositórios e controllers**.
+
+### Exemplo
+
+```cs
+public class Produto : EntidadeBase<Produto>
+{
+    public int Id { get; set; }
+    public string Nome { get; set; }
+    public decimal Preco { get; set; }
+
+    public List<string> Validar()
+    {
+        var erros = new List<string>();
+        
+        if (string.IsNullOrWhiteSpace(Nome))
+            erros.Add("Nome é obrigatório.");
+            
+        if (Preco <= 0)
+            erros.Add("Preço deve ser maior que zero.");
+            
+        return erros;
+    }
+}
+```
+
+## O que é um **ViewModel**?
+
+Um **ViewModel** é uma **classe feita para servir a View (interface), adaptando ou combinando informações dos Models**.
+### Características
+
+- Não representa uma entidade do domínio diretamente.
+- Contém apenas os dados que a tela realmente precisa.
+- Pode combinar dados de múltiplos Models.
+- Pode conter validações de interface (DataAnnotations).
+- Ajuda a evitar expor diretamente o Model para a View (boa prática de segurança e desacoplamento).
+### Exemplo
+
+```cs
+public class ProdutoViewModel
+{
+    public string Nome { get; set; }
+
+    [Display(Name = "Preço (R$)")]
+    [Range(0.01, double.MaxValue, ErrorMessage = "Preço deve ser maior que zero.")]
+    public decimal Preco { get; set; }
+
+	// dado adicional vindo de outra entidade, por exemplo.
+    public string NomeCategoria { get; set; } 
+}
+```
+
+## Por que separar **Model** e **ViewModel**?
+
+|Model|ViewModel|
+|---|---|
+|Reflete a entidade do domínio / banco|Reflete os dados necessários para a View|
+|Contém lógica de negócio e validação|Contém validação de interface (DataAnnotations)|
+|Usado em camada de serviço, domínio, repositório|Usado exclusivamente pela camada de interface (View)|
+Além de:
+- **Segurança**: evitar expor entidades completas na View.
+- **Flexibilidade**: a View pode precisar de dados agregados, formatados ou simplificados.
+- **Clareza**: cada classe tem uma única responsabilidade.
+
+## Exemplo prático no ASP.NET MVC
+
+```cs
+public class ProdutoController : Controller
+{
+    public IActionResult Detalhes(int id)
+    {
+        var produto = repositorioProduto.SelecionarPorId(id);
+
+        var viewModel = new ProdutoViewModel
+        {
+            Nome = produto.Nome,
+            Preco = produto.Preco,
+            CategoriaNome = produto.Categoria.Nome
+        };
+
+        return View(viewModel);
+    }
+}
+```

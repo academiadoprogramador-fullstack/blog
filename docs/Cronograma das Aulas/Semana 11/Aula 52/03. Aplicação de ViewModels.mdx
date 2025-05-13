@@ -1,0 +1,602 @@
+## Introdução
+
+Agora, iremos aplicar o conceito de ViewModels na aplicação **Gestão de Equipamentos.**
+
+No **módulo Fabricante**, para cada operação CRUD relacionada ao mesmo, iremos especificar um ViewModel:
+## ViewModels Compartilhados
+
+### `NotificacaoViewModel`
+
+```cs
+public class NotificacaoViewModel
+{
+    public string TituloPagina { get; set; }
+    public string Mensagem { get; set; }
+
+    public NotificacaoViewModel(string tituloPagina, string mensagem)
+    {
+        TituloPagina = tituloPagina;
+        Mensagem = mensagem;
+    }
+}
+```
+## Função:
+
+- **ViewModel genérico para notificações** para todos as ações dos controladores.
+- Centraliza a passagem de mensagem para a View `Notificacao.cshtml`.
+
+---
+## ViewModels de Fabricante
+
+### `FormularioFabricanteViewModel`
+
+```cs
+public abstract class FormularioFabricanteViewModel
+{
+    public abstract string TituloPagina { get; }
+    public string Nome { get; set; }
+    public string Email { get; set; }
+    public string Telefone { get; set; }
+}
+```
+#### Função:
+
+- **ViewModel base genérico** para formulários de **Cadastro** e **Edição**.
+- Centraliza propriedades comuns (`Nome`, `Email`, `Telefone`).
+- Possui `TituloPagina` abstrato, que será implementado de maneira diferente por cada classe derivada.
+#### 🚩 Usado como **base de herança** por:
+
+- `CadastrarFabricanteViewModel`
+- `EditarFabricanteViewModel`
+
+---
+### `CadastrarFabricanteViewModel`
+
+```cs
+public class CadastrarFabricanteViewModel : FormularioFabricanteViewModel
+{
+    public override string TituloPagina { get; } = "Cadastro de Fabricantes";
+}
+```
+#### Função:
+
+- Especialização para o formulário de **Cadastro**.
+- Apenas define o título da página.
+- Utiliza as propriedades herdadas para capturar os dados do novo fabricante.
+#### 🔗 Usado em:
+
+- `Cadastrar` (GET/POST)
+
+---
+### `EditarFabricanteViewModel`
+
+```cs
+public class EditarFabricanteViewModel : FormularioFabricanteViewModel
+{
+    public override string TituloPagina { get; } = "Edição de Fabricantes";
+
+    public int Id { get; set; }
+
+    public EditarFabricanteViewModel(int id, string nome, string email, string telefone)
+    {
+        Id = id;
+        Nome = nome;
+        Email = email;
+        Telefone = telefone;
+    }
+}
+```
+#### Função:
+
+- Especialização para o formulário de **Edição**.
+- Inicializa o ViewModel com dados existentes (`Nome`, `Email`, `Telefone`).
+- Contém um Id utilizado para edição
+- Define título próprio.
+#### 🔗 Usado em:
+
+- `Editar` (GET/POST)
+
+---
+### `ExcluirFabricanteViewModel`
+
+```cs
+public class ExcluirFabricanteViewModel
+{
+    public string TituloPagina { get; } = "Exclusão de Fabricantes";
+    public int Id { get; set; }
+    public string Nome { get; set; }
+
+    public ExcluirFabricanteViewModel(int id, string nome)
+    {
+        Id = id;
+        Nome = nome;
+    }
+}
+```
+#### Função:
+
+- ViewModel enxuto usado apenas para **confirmar exclusão**.
+- Contém o `Id` e o `Nome` do fabricante para apresentar ao usuário.
+- Título da página de confirmação.
+#### 🔗 Usado em:
+
+- `Excluir` (GET)
+
+---
+### `VisualizarFabricantesViewModel`
+
+```cs
+public class VisualizarFabricantesViewModel
+{
+    public string TituloPagina { get; } = "Visualização de Fabricantes";
+
+    public List<DetalhesFabricanteViewModel> Registros { get; } = new List<DetalhesFabricanteViewModel>();
+
+    public VisualizarFabricantesViewModel(List<Fabricante> fabricantes)
+    {
+        foreach (Fabricante fabricante in fabricantes)
+        {
+            DetalhesFabricanteViewModel detalhesVM = fabricante.ParaDetalhesFabricanteViewModel();
+            Registros.Add(detalhesVM);
+        }
+    }
+}
+```
+#### Função:
+
+- Encapsula uma **lista de fabricantes formatados para exibição**.
+- Converte entidades `Fabricante` em `DetalhesFabricanteViewModel`.
+- Define um título para a página de visualização.
+#### 🔗 Usado em:
+
+- `Visualizar` (GET)
+
+---
+### `DetalhesFabricanteViewModel`
+
+```cs
+public class DetalhesFabricanteViewModel
+{
+    public int Id { get; set; }
+    public string Nome { get; set; }
+    public string Email { get; set; }
+    public string Telefone { get; set; }
+
+    public DetalhesFabricanteViewModel(int id, string nome, string email, string telefone)
+    {
+        Id = id;
+        Nome = nome;
+        Email = email;
+        Telefone = telefone;
+    }
+
+    public override string ToString()
+    {
+        return $"Id: {Id}, Nome: {Nome}, Email: {Email}, Telefone: {Telefone}";
+    }
+}
+```
+#### Função:
+
+- **ViewModel detalhado de fabricante individual**, usado principalmente dentro do `VisualizarFabricantesViewModel`.
+- Facilita exibir as informações completas de cada fabricante em tabelas, cards, etc.
+## Resumo dos ViewModels de Fabricante
+
+| ViewModel                      | Finalidade                                     | Tela/Ação                 |
+| ------------------------------ | ---------------------------------------------- | ------------------------- |
+| FormularioFabricanteViewModel  | Base comum para formulários (Nome, Email, Tel) | Base para Cadastro/Edição |
+| CadastrarFabricanteViewModel   | ViewModel de cadastro de fabricante            | Cadastro (GET/POST)       |
+| EditarFabricanteViewModel      | ViewModel de edição de fabricante              | Edição (GET/POST)         |
+| ExcluirFabricanteViewModel     | ViewModel para confirmação de exclusão         | Exclusão (GET)            |
+| VisualizarFabricantesViewModel | Lista de fabricantes prontos para exibição     | Visualização (GET)        |
+| DetalhesFabricanteViewModel    | Detalhamento de um fabricante (usado na lista) | Dentro da Visualização    |
+
+## Como os ViewModels estão sendo usados em cada caso
+
+No nosso código código, iremos utilizar **ViewModels** como **camada intermediária entre o Controller e as Views**.  
+Cada operação (`Cadastrar`, `Editar`, `Excluir`, `Visualizar`) tem seu próprio **ViewModel especializado**, que serve para:
+
+- Organizar os dados necessários para cada tela.
+- Realizar validações específicas de interface.
+- Traduzir entre a View e o **Model real (`Fabricante`)**.
+
+---
+### 1. `CadastrarFabricanteViewModel`
+
+Usado tanto no `GET` quanto no `POST` para cadastrar fabricantes.
+
+- No `GET`:
+    
+    - O Controller cria uma instância vazia do ViewModel (`CadastrarFabricanteViewModel`) e envia para a View.
+    
+- No `POST`:
+    
+    - A View envia os dados preenchidos via `CadastrarFabricanteViewModel`.
+    - O Controller converte o ViewModel em um **Model real (`Fabricante`)** usando `cadastrarVM.ParaEntidade()`.
+    - O Controller então usa o repositório para persistir o `Fabricante`.
+
+✔ Aqui o **ViewModel protege o Model real**, expondo apenas os campos que a View precisa e permite validações específicas de tela.
+
+```cs
+[Route("fabricantes")]
+public class ControladorFabricante : Controller
+{
+    [HttpGet("cadastrar")]
+    public IActionResult ExibirFormularioCadastroFabricante()
+    {
+        CadastrarFabricanteViewModel cadastrarVM = new CadastrarFabricanteViewModel();
+
+        return View("Cadastrar", cadastrarVM);
+    }
+
+    [HttpPost("cadastrar")]
+    public IActionResult CadastrarFabricante(CadastrarFabricanteViewModel cadastrarVM)
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        Fabricante novoFabricante = cadastrarVM.ParaEntidade();
+
+        repositorioFabricante.CadastrarRegistro(novoFabricante);
+
+        NotificacaoViewModel notificacaoVM = new NotificacaoViewModel(
+            "Fabricante Cadastrado!",
+            $"O registro \"{novoFabricante.Nome}\" foi cadastrado com sucesso!"
+        );
+
+        return View("Notificacao", notificacaoVM);
+    }
+}
+```
+
+```html
+@using GestaoDeEquipamentos.ConsoleApp.ViewModels
+@using GestaoDeEquipamentos.ConsoleApp.ViewModels.ControladorFabricante
+
+@model CadastrarFabricanteViewModel;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Cadastro de Fabricante - Gestão de Equipamentos</title>
+</head>
+
+<body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+    <a href="/fabricantes/visualizar">Visualizar Fabricantes</a>
+
+    <hr />
+
+    <h3>@Model.TituloPagina</h3>
+
+    <form action="/fabricantes/cadastrar" method="post">
+        <label>Nome do Fabricante:</label>
+        <br />
+        <input type="text" name="Nome"/>
+
+        <br />
+
+        <label>Email do Fabricante:</label>
+        <br />
+        <input type="text" name="Email" />
+
+        <br />
+
+        <label>Telefone do Fabricante:</label>
+        <br />
+        <input type="text" name="Telefone" />
+        <hr />
+
+        <button type="submit">Gravar</button>
+    </form>
+</body>
+</html>
+```
+
+---
+### 2. `EditarFabricanteViewModel`
+
+Usado tanto no `GET` quanto no `POST` para edição.
+
+- No `GET`:
+    
+    - O Controller busca o `Fabricante` no repositório.
+    - Cria um `EditarFabricanteViewModel` com os dados do `Fabricante`.
+    - Envia o ViewModel para a View.
+    
+- No `POST`:
+    
+    - Recebe os dados do `EditarFabricanteViewModel`.
+    - Converte para `Fabricante` via `editarVM.ParaEntidade()`.
+    - Atualiza o `Fabricante` no repositório.
+
+✔ Novamente, o ViewModel permite que você exponha apenas o necessário, sem a View manipular diretamente a entidade de domínio.
+
+```cs
+[Route("fabricantes")]
+public class ControladorFabricante : Controller
+{
+    [HttpGet("editar/{id:int}")]
+    public IActionResult ExibirFormularioEdicaoFabricante([FromRoute] int id)
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        Fabricante fabricanteSelecionado = repositorioFabricante.SelecionarRegistroPorId(id);
+
+        EditarFabricanteViewModel editarVM = new EditarFabricanteViewModel(
+            fabricanteSelecionado.Nome,
+            fabricanteSelecionado.Email,
+            fabricanteSelecionado.Telefone
+        );
+
+        return View("Editar", editarVM);
+    }
+
+    [HttpPost("editar/{id:int}")]
+    public IActionResult EditarFabricante([FromRoute] int id, EditarFabricanteViewModel editarVM)
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        Fabricante fabricanteAtualizado = editarVM.ParaEntidade();
+
+        repositorioFabricante.EditarRegistro(id, fabricanteAtualizado);
+
+        NotificacaoViewModel notificacaoVM = new NotificacaoViewModel(
+            "Fabricante Editado!",
+            $"O registro \"{fabricanteAtualizado.Nome}\" foi editado com sucesso!"
+        );
+
+        return View("Notificacao", notificacaoVM);
+    }
+```
+
+```html
+@using GestaoDeEquipamentos.ConsoleApp.ModuloFabricante
+@using GestaoDeEquipamentos.ConsoleApp.ViewModels
+@using GestaoDeEquipamentos.ConsoleApp.ViewModels.ControladorFabricante
+
+@model EditarFabricanteViewModel;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Edição de Fabricante - Gestão de Equipamentos</title>
+</head>
+
+<body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+    <a href="/fabricantes/cadastrar">Cadastrar Novo Fabricante</a> /
+    <a href="/fabricantes/visualizar">Visualizar Fabricantes</a>
+
+    <hr />
+
+    <h3>@Model.TituloPagina</h3>
+
+    <form action="/fabricantes/editar/@Model.Id" method="post">
+        <label>Nome do Fabricante:</label>
+        <br />
+        <input type="text" name="Nome" value="@Model.Nome" />
+
+        <br />
+
+        <label>Email do Fabricante:</label>
+        <br />
+        <input type="text" name="Email" value="@Model.Email" />
+
+        <br />
+
+        <label>Telefone do Fabricante:</label>
+        <br />
+        <input type="text" name="Telefone" value="@Model.Telefone" />
+        <hr />
+
+        <button type="submit">Gravar</button>
+    </form>
+</body>
+</html>
+```
+
+---
+### 3. `ExcluirFabricanteViewModel`
+
+Usado no `GET` para exibir confirmação de exclusão.
+
+- O Controller busca o `Fabricante` pelo `id`.
+- Cria um `ExcluirFabricanteViewModel` contendo apenas o `Id` e o `Nome`.
+- Envia esse ViewModel para a View de confirmação.
+
+✔ Isso evita expor toda a entidade, apenas os dados que a tela de exclusão precisa mostrar.
+
+```cs
+[Route("fabricantes")]
+public class ControladorFabricante : Controller
+{
+    [HttpGet("excluir/{id:int}")]
+    public IActionResult ExibirFormularioExclusaoFabricante([FromRoute] int id)
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        Fabricante fabricanteSelecionado = repositorioFabricante.SelecionarRegistroPorId(id);
+
+        ExcluirFabricanteViewModel excluirVM = new ExcluirFabricanteViewModel(id, fabricanteSelecionado.Nome);
+
+        return View("Excluir", excluirVM);
+    }
+
+    [HttpPost("excluir/{id:int}")]
+    public IActionResult ExcluirFabricante([FromRoute] int id)
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        repositorioFabricante.ExcluirRegistro(id);
+
+        NotificacaoViewModel notificacaoVM = new NotificacaoViewModel(
+            "Fabricante Excluído!",
+            "O registro foi excluído com sucesso!"
+        );
+
+        return View("Notificacao", notificacaoVM);
+    }
+```
+
+```html
+@using GestaoDeEquipamentos.ConsoleApp.ModuloFabricante
+@using GestaoDeEquipamentos.ConsoleApp.ViewModels
+@using GestaoDeEquipamentos.ConsoleApp.ViewModels.ControladorFabricante
+
+@model ExcluirFabricanteViewModel;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Exclusão de Fabricante - Gestão de Equipamentos</title>
+</head>
+
+<body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+    <a href="/fabricantes/cadastrar">Cadastrar Novo Fabricante</a> /
+    <a href="/fabricantes/visualizar">Visualizar Fabricantes</a>
+
+    <hr />
+
+    <h3>Exclusão de Fabricante</h3>
+
+    <p>Você tem certeza que deseja excluir o registro "@Model.Nome"?</p>
+
+    <form action="/fabricantes/excluir/@Model.Id" method="post">
+        <button type="submit">Confirmar</button>
+        <a href="/fabricantes/visualizar">Voltar</a>
+    </form>
+</body>
+</html>
+```
+
+---
+### 4. **VisualizarFabricantesViewModel**
+
+Usado no `GET` para exibir todos os fabricantes.
+
+- O Controller busca todos os `Fabricante` no repositório.
+- Cria um `VisualizarFabricantesViewModel` que encapsula a lista.
+- Envia o ViewModel para a View.
+
+✔ Permite que a View apenas enxergue a coleção já organizada, podendo até conter dados adicionais, como contagem ou mensagens.
+
+```cs
+[Route("fabricantes")]
+public class ControladorFabricante : Controller
+{
+    [HttpGet("visualizar")]
+    public IActionResult VisualizarFabricantes()
+    {
+        ContextoDados contextoDados = new ContextoDados(true);
+        IRepositorioFabricante repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        List<Fabricante> fabricantes = repositorioFabricante.SelecionarRegistros();
+
+        VisualizarFabricantesViewModel visualizarVM = new VisualizarFabricantesViewModel(fabricantes);
+
+        return View("Visualizar", visualizarVM);
+    }
+}
+```
+
+```html
+@using GestaoDeEquipamentos.ConsoleApp.ModuloFabricante
+@using GestaoDeEquipamentos.ConsoleApp.ViewModels
+@using GestaoDeEquipamentos.ConsoleApp.ViewModels.ControladorFabricante
+
+@model VisualizarFabricantesViewModel;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Visualização de Fabricantes - Gestão de Equipamentos</title>
+</head>
+
+<body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+    <a href="/fabricantes/cadastrar">Cadastrar Novo Fabricante</a> /
+
+    <hr />
+
+    <h3>@Model.TituloPagina</h3>
+
+    <ul>
+        @foreach (DetalhesFabricanteViewModel f in Model.Registros)
+        {
+            <li>@f.ToString() / <a href="/fabricantes/editar/@f.Id">Editar</a> /
+                <a href="/fabricantes/excluir/@f.Id">Excluir</a></li>
+        }
+    </ul>
+</body>
+</html>
+```
+
+---
+###  Modelo da `Notificacao.cshtml`
+
+```html
+@using GestaoDeEquipamentos.ConsoleApp.ViewModels
+@using GestaoDeEquipamentos.ConsoleApp.ViewModels.Shared
+
+@model NotificacaoViewModel;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.TituloPagina - Gestão de Equipamentos</title>
+</head>
+
+<body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+
+    <hr />
+
+    <h3>@Model.TituloPagina</h3>
+
+    <p>@Model.Mensagem</p>
+</body>
+</html>
+```
+
+Usado em diversas ações (`Cadastrar`, `Editar`, `Excluir`) para mostrar mensagens amigáveis de sucesso.
+
+✔ Um ViewModel genérico de feedback ao usuário, evitando misturar lógica de domínio com mensagens de interface.
+
+---
+## Por que isso é importante?
+
+- **Segurança**: evita que a View tenha acesso direto ao Model.
+- **Organização**: cada tela tem seu ViewModel específico com seus campos e validações.
+- **Desacoplamento**: facilita mudanças na interface sem impactar a camada de domínio.
+- **Responsabilidade única**: ViewModels cuidam da interface, Models cuidam do domínio.

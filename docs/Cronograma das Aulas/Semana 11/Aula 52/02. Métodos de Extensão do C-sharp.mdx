@@ -1,0 +1,195 @@
+## Introdução
+
+Métodos de Extensão (Extension Methods) são métodos **estáticos** que permitem **adicionar novos comportamentos a tipos existentes**, sem precisar:
+
+- Herdar da classe
+- Alterar a classe original
+
+Utilizados especialmente para:
+
+- **Adicionar funcionalidades em classes fechadas ou de terceiros**
+- Melhorar a legibilidade de código (estilo _fluent API_)
+- Manter código coeso e reutilizável
+## Características principais
+
+- Definidos em uma **classe estática**
+- São **métodos estáticos**
+- Primeiro parâmetro tem a palavra-chave `this` indicando o tipo a ser estendido
+- Chamados como se fossem **métodos de instância**
+
+---
+## Exemplo básico — Estendendo `string`
+
+```cs
+public static class StringExtensions
+{
+    public static bool EstaVaziaOuNula(this string texto)
+    {
+        return string.IsNullOrEmpty(texto);
+    }
+}
+```
+
+**Uso:**
+
+Apesar de ser um método estático, você o chama **como se fosse da instância** (`nome.EstaVaziaOuNula()`).
+
+```cs
+string nome = "";
+bool resultado = nome.EstaVaziaOuNula(); // true
+```
+
+---
+## Estendendo qualquer `List<T>`
+
+```cs
+public static class ListExtensions
+{
+    public static void ExibirItens<T>(this List<T> lista)
+    {
+        foreach (T item in lista)
+        {
+            Console.WriteLine(item);
+        }
+    }
+}
+```
+
+**Uso:**
+
+```cs
+var numeros = new List<int> { 1, 2, 3 };
+numeros.ExibirItens();
+```
+
+---
+## Vantagens dos métodos de extensão
+
+- **Legibilidade:** permite criar chamadas encadeadas ou mais naturais.
+- **Reutilização:** código centralizado e reutilizável.
+- **Não intrusivo:** sem necessidade de alterar a classe original.
+- **Permite trabalhar com interfaces e tipos fechados.**
+
+## Regras importantes:
+
+|Regra|Exemplo|
+|---|---|
+|A classe que contém deve ser `static`|`public static class StringExtensions { ... }`|
+|O método deve ser `static`|`public static bool EstaVaziaOuNula(this string s)`|
+|O primeiro parâmetro tem `this`|`this string s`|
+|Pode ter qualquer nome|`EstaVaziaOuNula`, `DiasAteHoje`, `ExibirItens`|
+|Pode ser usado em qualquer projeto|Basta importar o namespace da classe estática|
+
+---
+## Aplicações de Métodos de Extensão no MVC
+
+No contexto de **MVC**, é muito comum precisar **converter dados de Models para ViewModels e vice-versa**.
+
+Normalmente você teria que fazer isso **manual em cada controller**, o que pode gerar:
+- Código repetitivo.
+- Alta chance de erro humano.
+- Dificuldade em manter padrões consistentes.
+#### Solução: Métodos de Extensão
+
+Utilizando **métodos de extensão**, você consegue criar métodos reutilizáveis e limpos para mapear Models em ViewModels e vice-versa.
+
+Isso melhora:
+
+- **Reutilização**
+- **Legibilidade**
+- **Organização do código**
+### Exemplo com Produto e ProdutoViewModel
+
+```cs
+public class Produto
+{
+    public int Id { get; set; }
+    public string Nome { get; set; }
+    public decimal Preco { get; set; }
+    public Categoria Categoria { get; set; }
+}
+
+public class Categoria
+{
+    public string Nome { get; set; }
+}
+```
+
+```cs
+public class ProdutoViewModel
+{
+    public int Id { get; set; }
+    public string Nome { get; set; }
+    public string PrecoFormatado { get; set; }
+    public string NomeCategoria { get; set; }
+}
+```
+
+---
+### Métodos de Extensão para mapeamento
+
+```cs
+public static class ProdutoExtensions
+{
+    // Model -> ViewModel
+    public static ProdutoViewModel ParaViewModel(this Produto produto)
+    {
+        return new ProdutoViewModel
+        {
+            Id = produto.Id,
+            Nome = produto.Nome,
+            PrecoFormatado = produto.Preco.ToString("C2"), // R$ 1.000,00
+            NomeCategoria = produto.Categoria?.Nome
+        };
+    }
+
+    // ViewModel -> Model (Exemplo para POST ou PUT)
+    public static Produto ParaEntidade(this ProdutoViewModel viewModel)
+    {
+        return new Produto
+        {
+            Id = viewModel.Id,
+            Nome = viewModel.Nome,
+            Preco = decimal.Parse(viewModel.PrecoFormatado.Replace("R$", "").Trim()),
+            Categoria = new Categoria { Nome = viewModel.NomeCategoria }
+        };
+    }
+}
+```
+
+---
+### Uso prático no Controller
+
+```cs
+public class ProdutoController : Controller
+{
+    public IActionResult Detalhes(int id)
+    {
+        var produto = repositorioProduto.SelecionarPorId(id);
+
+        var viewModel = produto.ParaViewModel();
+
+        return View(viewModel);
+    }
+
+    [HttpPost]
+    public IActionResult Editar(ProdutoViewModel viewModel)
+    {
+        var produto = viewModel.ParaEntidade();
+
+        repositorioProduto.Atualizar(produto);
+
+        return RedirectToAction("Index");
+    }
+}
+```
+
+---
+## Vantagens de utilizar métodos de extensão para mapeamento
+
+| Vantagem        | Descrição                                               |
+| --------------- | ------------------------------------------------------- |
+| 🔁 Reutilização | Mapeamento centralizado, evitando código duplicado.     |
+| 🧹 Limpeza      | Código do controller mais limpo e focado na lógica.     |
+| ✅ Consistência  | Sempre o mesmo padrão em toda a aplicação.              |
+| 🛡 Segurança    | Evita que dados desnecessários do Model sejam expostos. |
