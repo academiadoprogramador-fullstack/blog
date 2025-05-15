@@ -1,0 +1,372 @@
+## Introdução
+
+O `ControladorEquipamento` será responsável pelo gerenciamento de operações CRUD de seu respectivo domínio.
+
+| Método                              | Verbo HTTP | Função                                               |
+| ----------------------------------- | ---------- | ---------------------------------------------------- |
+| ExibirFormularioCadastroEquipamento | GET        | Exibe formulário de cadastro de equipamento          |
+| CadastrarEquipamento                | POST       | Processa o cadastro de novo equipamento              |
+| ExibirFormularioEdicaoEquipamento   | GET        | Exibe formulário de edição de equipamento            |
+| EditarEquipamento                   | POST       | Processa a edição de equipamento existente           |
+| ExibirFormularioExclusaoEquipamento | GET        | Exibe tela de confirmação de exclusão de equipamento |
+| ExcluirEquipamento                  | POST       | Exclui o equipamento selecionado                     |
+| VisualizarEquipamentos              | GET        | Lista todos os equipamentos                          |
+
+## Actions e Views
+
+### 01. Cadastro de Equipamento
+
+```cs title="Controllers/ControladorEquipamento.cs"
+[Route("equipamentos")]
+public class ControladorEquipamento : Controller
+{
+    [HttpGet("cadastrar")]
+    public IActionResult ExibirFormularioCadastroEquipamento()
+    {
+        var contextoDados = new ContextoDados(true);
+        var repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        var fabricantes = repositorioFabricante.SelecionarRegistros();
+
+        var cadastrarVM = new CadastrarEquipamentoViewModel(fabricantes);
+
+        return View("Cadastrar", cadastrarVM);
+    }
+
+    [HttpPost("cadastrar")]
+    public IActionResult CadastrarEquipamento(CadastrarEquipamentoViewModel cadastrarVM)
+    {
+        var contextoDados = new ContextoDados(true);
+        var repositorioEquipamento = new RepositorioEquipamentoEmArquivo(contextoDados);
+        var repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        var fabricantes = repositorioFabricante.SelecionarRegistros();
+
+        var novoEquipamento = cadastrarVM.ParaEntidade(fabricantes);
+
+        repositorioEquipamento.CadastrarRegistro(novoEquipamento);
+
+        var notificacaoVM = new NotificacaoViewModel(
+            "Equipamento Cadastrado!",
+            $"O registro \"{novoEquipamento.Nome}\" foi cadastrado com sucesso!"
+        );
+
+        return View("Notificacao", notificacaoVM);
+    }
+}
+```
+
+```html title="Views/ControladorEquipamento/Cadastrar.cshtml"
+@using GestaoDeEquipamentos.ConsoleApp.Models @model
+CadastrarEquipamentoViewModel;
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Cadastro de Equipamento - Gestão de Equipamentos</title>
+  </head>
+
+  <body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+    <a href="/equipamentos/visualizar">Visualizar Equipamentos</a>
+
+    <hr />
+
+    <h3>Cadastro de Equipamento</h3>
+
+    <form action="/equipamentos/cadastrar" method="post">
+      <label for="Nome">Nome do Equipamento:</label>
+      <br />
+      <input type="text" name="Nome" id="Nome" />
+
+      <br />
+
+      <label for="PrecoAquisicao">Preço de Aquisição do Equipamento:</label>
+      <br />
+      <input type="text" name="PrecoAquisicao" id="PrecoAquisicao" />
+
+      <br />
+
+      <label for="DataFabricacao">Data de Fabricação do Equipamento:</label>
+      <br />
+      <input type="date" name="DataFabricacao" id="DataFabricacao" />
+
+      <br />
+
+      <label for="FabricanteId">Fabricante do Equipamento:</label>
+      <br />
+      <select name="FabricanteId" id="FabricanteId">
+        @foreach (var f in @Model.FabricantesDisponiveis) {
+        <option value="@f.Id">@f.Nome</option>
+        }
+      </select>
+
+      <hr />
+
+      <button type="submit">Gravar</button>
+    </form>
+  </body>
+</html>
+```
+
+---
+
+### 02. Edição de Equipamento
+
+```cs title="Controllers/ControladorEquipamento.cs"
+[Route("equipamentos")]
+public class ControladorEquipamento : Controller
+{
+    [HttpGet("editar/{id:int}")]
+    public IActionResult ExibirFormularioEdicaoEquipamento([FromRoute] int id)
+    {
+        var contextoDados = new ContextoDados(true);
+        var repositorioEquipamento = new RepositorioEquipamentoEmArquivo(contextoDados);
+        var repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        var fabricantes = repositorioFabricante.SelecionarRegistros();
+
+        var equipamentoSelecionado = repositorioEquipamento.SelecionarRegistroPorId(id);
+
+        var editarVM = new EditarEquipamentoViewModel(
+            id,
+            equipamentoSelecionado.Nome,
+            equipamentoSelecionado.PrecoAquisicao,
+            equipamentoSelecionado.DataFabricacao,
+            equipamentoSelecionado.Fabricante.Id,
+            fabricantes
+        );
+
+        return View("Editar", editarVM);
+    }
+
+    [HttpPost("editar/{id:int}")]
+    public IActionResult EditarEquipamento([FromRoute] int id, EditarEquipamentoViewModel editarVM)
+    {
+        var contextoDados = new ContextoDados(true);
+        var repositorioEquipamento = new RepositorioEquipamentoEmArquivo(contextoDados);
+        var repositorioFabricante = new RepositorioFabricanteEmArquivo(contextoDados);
+
+        var fabricantes = repositorioFabricante.SelecionarRegistros();
+
+        var equipamentoOriginal = repositorioEquipamento.SelecionarRegistroPorId(id);
+
+        var equipamentoEditado = editarVM.ParaEntidade(fabricantes);
+
+        if (equipamentoEditado.Fabricante != equipamentoOriginal.Fabricante)
+        {
+            equipamentoOriginal.Fabricante.RemoverEquipamento(equipamentoOriginal);
+            equipamentoOriginal.Fabricante = equipamentoEditado.Fabricante;
+        }
+
+        repositorioEquipamento.EditarRegistro(id, equipamentoEditado);
+
+        var notificacaoVM = new NotificacaoViewModel(
+            "Equipamento Editado!",
+            $"O registro \"{equipamentoEditado.Nome}\" foi editado com sucesso!"
+        );
+
+        return View("Notificacao", notificacaoVM);
+    }
+}
+```
+
+```html title="Views/ControladorEquipamento/Editar.cshtml"
+@using GestaoDeEquipamentos.ConsoleApp.Models
+
+@model EditarEquipamentoViewModel;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Edição de Equipamento - Gestão de Equipamentos</title>
+</head>
+
+<body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+    <a href="/equipamentos/cadastrar">Cadastrar Novo Equipamento</a> /
+    <a href="/equipamentos/visualizar">Visualizar Equipamentos</a>
+
+    <hr />
+
+    <h3>Edição de Equipamento</h3>
+
+    <form action="/equipamentos/editar/@Model.Id" method="post">
+        <label for="Nome">Nome do Equipamento:</label>
+        <br />
+        <input type="text" name="Nome" id="Nome" value="@Model.Nome"/>
+
+        <br />
+
+        <label for="PrecoAquisicao">Preço de Aquisição do Equipamento:</label>
+        <br />
+        <input type="text" name="PrecoAquisicao" id="PrecoAquisicao" value="@Model.PrecoAquisicao.ToString("N2")"/>
+
+        <br />
+
+        <label for="DataFabricacao">Data de Fabricação do Equipamento:</label>
+        <br />
+        <input type="date" name="DataFabricacao" id="DataFabricacao" value="@Model.DataFabricacao.ToString("yyyy-MM-dd")"/>
+
+        <br />
+
+        <label for="FabricanteId">Fabricante do Equipamento:</label>
+        <br />
+        <select name="FabricanteId" id="FabricanteId">
+            @foreach (var f in @Model.FabricantesDisponiveis)
+            {
+                <option value="@f.Id" @(f.Id == Model.FabricanteId ? "selected" : "")>@f.Nome</option>
+            }
+        </select>
+
+        <hr />
+
+        <button type="submit">Gravar</button>
+    </form>
+</body>
+</html>
+```
+
+---
+
+### 03. Exclusão de Equipamento
+
+```cs title="Controllers/ControladorEquipamento.cs"
+[Route("equipamentos")]
+public class ControladorEquipamento : Controller
+{
+    [HttpGet("excluir/{id:int}")]
+    public IActionResult ExibirFormularioExclusaoEquipamento([FromRoute] int id)
+    {
+        var contextoDados = new ContextoDados(true);
+        var repositorioEquipamento = new RepositorioEquipamentoEmArquivo(contextoDados);
+
+        var equipamentoSelecionado = repositorioEquipamento.SelecionarRegistroPorId(id);
+
+        var excluirVM = new ExcluirEquipamentoViewModel(
+            equipamentoSelecionado.Id,
+            equipamentoSelecionado.Nome
+        );
+
+        return View("Excluir", excluirVM);
+    }
+
+    [HttpPost("excluir/{id:int}")]
+    public IActionResult ExcluirEquipamento([FromRoute] int id)
+    {
+        var contextoDados = new ContextoDados(true);
+        var repositorioEquipamento = new RepositorioEquipamentoEmArquivo(contextoDados);
+
+        repositorioEquipamento.ExcluirRegistro(id);
+
+        var notificacaoVM = new NotificacaoViewModel(
+            "Equipamento Excluído!",
+            "O registro foi excluído com sucesso!"
+        );
+
+        return View("Notificacao", notificacaoVM);
+    }
+}
+```
+
+```html title="Views/ControladorEquipamento/Excluir.cshtml"
+@using GestaoDeEquipamentos.ConsoleApp.Models @model
+ExcluirEquipamentoViewModel;
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Exclusão de Equipamento - Gestão de Equipamentos</title>
+  </head>
+
+  <body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+    <a href="/equipamentos/cadastrar">Cadastrar Novo Equipamento</a> /
+    <a href="/equipamentos/visualizar">Visualizar Equipamentos</a>
+
+    <hr />
+
+    <h3>Exclusão de Equipamento</h3>
+
+    <p>Você tem certeza que deseja excluir o registro "@Model.Nome"?</p>
+
+    <form action="/equipamentos/excluir/@Model.Id" method="post">
+      <button type="submit">Confirmar</button>
+      <a href="/equipamentos/visualizar">Voltar</a>
+    </form>
+  </body>
+</html>
+```
+
+---
+
+### 04. Visualização de Equipamentos
+
+```cs title="Controllers/ControladorEquipamento.cs"
+[Route("equipamentos")]
+public class ControladorEquipamento : Controller
+{
+    [HttpGet("visualizar")]
+    public IActionResult VisualizarEquipamentos()
+    {
+        var contextoDados = new ContextoDados(true);
+        var repositorioEquipamento = new RepositorioEquipamentoEmArquivo(contextoDados);
+
+        var equipamentos = repositorioEquipamento.SelecionarRegistros();
+
+        var visualizarVM = new VisualizarEquipamentosViewModel(equipamentos);
+
+        return View("Visualizar", visualizarVM);
+    }
+}
+```
+
+```html title="Views/ControladorEquipamento/Visualizar.cshtml"
+@using GestaoDeEquipamentos.ConsoleApp.Models @model
+VisualizarEquipamentosViewModel;
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Visualização de Equipamentos - Gestão de Equipamentos</title>
+  </head>
+
+  <body>
+    <h1>Gestão de Equipamentos</h1>
+
+    <hr />
+
+    <a href="/">Página Inicial</a> /
+    <a href="/equipamentos/cadastrar">Cadastrar Novo Equipamento</a> /
+
+    <hr />
+
+    <h3>Visualização de Equipamentos</h3>
+
+    <ul>
+      @foreach (DetalhesEquipamentoViewModel e in Model.Registros) {
+      <li>
+        @e.ToString() / <a href="/equipamentos/editar/@e.Id">Editar</a> /
+        <a href="/equipamentos/excluir/@e.Id">Excluir</a>
+      </li>
+      }
+    </ul>
+  </body>
+</html>
+```
