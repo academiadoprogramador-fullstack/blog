@@ -1,0 +1,161 @@
+## Introdução
+
+Agora, iremos aplicar o conceito de ViewModels para o módulo de Equipamentos.
+
+## ViewModels de Equipamento
+
+### `FormularioEquipamentoViewModel`e `SelecionarFabricanteViewModel`
+
+A classe base para formulários irá conter `Nome`, `PrecoAquisicao` e `FabricanteId`.
+
+Além disso, será necessário também conter uma lista de fabricantes disponíveis para seleção durante o cadastro.
+
+```cs title="EquipamentoViewModels.cs"
+namespace GestaoDeEquipamentos.ConsoleApp.Models;
+
+public abstract class FormularioEquipamentoViewModel
+{
+    public string Nome { get; set; }
+    public decimal PrecoAquisicao { get; set; }
+    public DateTime DataFabricacao { get; set; }
+    public List<SelecionarFabricanteViewModel> FabricantesDisponiveis { get; set; } =
+        new List<SelecionarFabricanteViewModel>();
+
+    public int FabricanteId { get; set; }
+}
+
+public class SelecionarFabricanteViewModel
+{
+    public int Id { get; set; }
+    public string Nome { get; set; }
+
+    public SelecionarFabricanteViewModel(int id, string nome)
+    {
+        Id = id;
+        Nome = nome;
+    }
+}
+```
+
+### `CadastrarEquipamentoViewModel` e `EditarEquipamentoViewModel`
+
+O construtor do `CadastrarEquipamentoViewModel` será o responsável por mapear e preencher a lista de fabricantes para ViewModels adequados...
+
+Além das informações básicas — o construtor do `EditarEquipamentoViewModel` também deverá mapear e preencher a lista de fabricantes disponíveis.
+
+```cs title="EquipamentoViewModels.cs"
+public class CadastrarEquipamentoViewModel : FormularioEquipamentoViewModel
+{
+    public CadastrarEquipamentoViewModel() { }
+
+    public CadastrarEquipamentoViewModel(List<Fabricante> fabricantes)
+    {
+        foreach (var fabricante in fabricantes)
+        {
+            var selecionarFabricanteVM =
+                new SelecionarFabricanteViewModel(fabricante.Id, fabricante.Nome);
+
+            FabricantesDisponiveis.Add(selecionarFabricanteVM);
+        }
+    }
+}
+
+public class EditarEquipamentoViewModel : FormularioEquipamentoViewModel
+{
+    public int Id { get; set; }
+
+    public EditarEquipamentoViewModel() { }
+
+    public EditarEquipamentoViewModel(
+        int id,
+        string nome,
+        decimal precoAquisicao,
+        DateTime dataFabricacao,
+        int fabricanteId,
+        List<Fabricante> fabricantes
+    ) : this()
+    {
+        Id = id;
+        Nome = nome;
+        PrecoAquisicao = precoAquisicao;
+        DataFabricacao = dataFabricacao;
+        FabricanteId = fabricanteId;
+
+        foreach (var fabricante in fabricantes)
+        {
+            var selecionarFabricanteVM =
+                new SelecionarFabricanteViewModel(fabricante.Id, fabricante.Nome);
+
+            FabricantesDisponiveis.Add(selecionarFabricanteVM);
+        }
+    }
+}
+```
+
+### `ExcluirEquipamentoViewModel`
+
+```cs title="EquipamentoViewModels.cs"
+public class ExcluirEquipamentoViewModel
+{
+    public int Id { get; set; }
+    public string Nome { get; set; }
+
+    public ExcluirEquipamentoViewModel() { }
+
+    public ExcluirEquipamentoViewModel(int id, string nome) : this()
+    {
+        Id = id;
+        Nome = nome;
+    }
+}
+```
+
+### `VisualizarEquipamentosViewModel` e `DetalhesEquipamentoViewModel`
+
+O `VisualizarEquipamentosViewModel` irá utilizar o método de extensão `Equipamento.ParaDetalhesVM()` para mapear apenas os detalhes importantes da lista de equipamentos sendo recebida pelo cosntrutor.
+
+```cs title="EquipamentoViewModels.cs"
+public class VisualizarEquipamentosViewModel
+{
+    public List<DetalhesEquipamentoViewModel> Registros { get; } = new List<DetalhesEquipamentoViewModel>();
+
+    public VisualizarEquipamentosViewModel(List<Equipamento> equipamentos)
+    {
+        foreach (var e in equipamentos)
+        {
+            var detalhesVM = e.ParaDetalhesVM();
+
+            Registros.Add(detalhesVM);
+        }
+    }
+}
+
+public class DetalhesEquipamentoViewModel
+{
+    public int Id { get; set; }
+    public string Nome { get; set; }
+    public decimal PrecoAquisicao { get; set; }
+    public DateTime DataFabricacao { get; set; }
+    public string NomeFabricante { get; set; }
+
+    public DetalhesEquipamentoViewModel(
+        int id,
+        string nome,
+        decimal precoAquisicao,
+        DateTime dataFabricacao,
+        string nomeFabricante
+    )
+    {
+        Id = id;
+        Nome = nome;
+        PrecoAquisicao = precoAquisicao;
+        DataFabricacao = dataFabricacao;
+        NomeFabricante = nomeFabricante;
+    }
+
+    public override string ToString()
+    {
+        return $"Id: {Id} - Nome: {Nome} - Fabricante: {NomeFabricante} - Preço de Aquisição: {PrecoAquisicao:C2} - Data de Fabricação: {DataFabricacao:d}";
+    }
+}
+```
