@@ -1,0 +1,75 @@
+## Introdução
+
+Nossa classe `EquipamentoExtensions` irá conter métodos de extensão que para facilitarão a conversão entre ViewModels (usadas para capturar dados da interface ou apresentar dados ao usuário) e a entidade de domínio `Equipamento`. Ela nos permite estender tipos existentes (`FormularioEquipamentoViewModel` e `Equipamento`) sem precisar modificar suas classes diretamente.
+
+## Mapeamento `ViewModel` > `Entidade`
+
+Converte um FormularioEquipamentoViewModel usado na tela de Cadastro e Edição em uma instância da entidade Equipamento.
+
+Para conversão completa, será necessário incluir uma lista de fabricantes disponíveis no método, para que seja feita uma busca pelo objeto correto entre os cadastrados no contexto.
+
+```cs title="EquipamentoExtensions"
+using GestaoDeEquipamentos.ConsoleApp.Models;
+using GestaoDeEquipamentos.ConsoleApp.ModuloEquipamento;
+using GestaoDeEquipamentos.ConsoleApp.ModuloFabricante;
+
+namespace GestaoDeEquipamentos.ConsoleApp.Extensoes;
+
+public static class EquipamentoExtensions
+{
+    public static Equipamento ParaEntidade(this FormularioEquipamentoViewModel formularioVM, List<Fabricante> fabricantes)
+    {
+        Fabricante fabricanteSelecionado = null;
+
+        foreach (var fabricante in fabricantes)
+        {
+            if (fabricante.Id == formularioVM.FabricanteId)
+                fabricanteSelecionado = fabricante;
+        }
+
+        return new Equipamento(
+            formularioVM.Nome,
+            formularioVM.PrecoAquisicao,
+            formularioVM.DataFabricacao,
+            fabricanteSelecionado
+        );
+    }
+
+    public static DetalhesEquipamentoViewModel ParaDetalhesVM(this Equipamento equipamento)
+    {
+        return new DetalhesEquipamentoViewModel(
+            equipamento.Id,
+            equipamento.Nome,
+            equipamento.PrecoAquisicao,
+            equipamento.DataFabricacao,
+            equipamento.Fabricante.Nome
+        );
+    }
+}
+```
+
+## Mapeamento `Entidade` > `ViewModel`
+
+Converte uma instância da entidade Equipamento em uma DetalhesEquipamentoViewModel usada para exibir detalhes do mesmo na Visualização.
+
+```cs title="EquipamentoExtensions"
+using GestaoDeEquipamentos.ConsoleApp.Models;
+using GestaoDeEquipamentos.ConsoleApp.ModuloEquipamento;
+using GestaoDeEquipamentos.ConsoleApp.ModuloFabricante;
+
+namespace GestaoDeEquipamentos.ConsoleApp.Extensoes;
+
+public static class EquipamentoExtensions
+{
+    public static DetalhesEquipamentoViewModel ParaDetalhesVM(this Equipamento equipamento)
+    {
+        return new DetalhesEquipamentoViewModel(
+            equipamento.Id,
+            equipamento.Nome,
+            equipamento.PrecoAquisicao,
+            equipamento.DataFabricacao,
+            equipamento.Fabricante.Nome
+        );
+    }
+}
+```
