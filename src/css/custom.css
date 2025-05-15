@@ -1,6 +1,5 @@
-/* You can override the default Infima variables here. */
 :root {
-/*
+  /*
   See css var + hsl color palette technique:
   https://blog.maximeheckel.com/posts/the-power-of-composition-with-css-variables/
    */
@@ -8,7 +7,7 @@
   --site-primary-hue-saturation: 1, 1%;
   --site-primary-hue-saturation-light: 167, 56%;
   --ifm-font-size-base: 112.5%;
-  --ifm-font-family-base: system-ui, 'Segoe UI', Tahoma, sans-serif;
+  --ifm-font-family-base: system-ui, "Segoe UI", Tahoma, sans-serif;
 
   --doc-sidebar-width: 330px !important;
 
@@ -31,14 +30,13 @@
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
+[data-theme="dark"] {
   --ifm-color-feedback-background: #f0f8ff;
   --ifm-background-color: #0e1217;
 }
 
-
-[data-theme='light']{
-  --ifm-navbar-link-color:  #f0f8ff;
+[data-theme="light"] {
+  --ifm-navbar-link-color: #f0f8ff;
 }
 
 .docusaurus-highlight-code-line {
@@ -48,7 +46,7 @@
   padding: 0 var(--ifm-pre-padding);
 }
 
-html[data-theme='dark'] .docusaurus-highlight-code-line {
+html[data-theme="dark"] .docusaurus-highlight-code-line {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
@@ -57,7 +55,7 @@ html[data-theme='dark'] .docusaurus-highlight-code-line {
 }
 
 .header-github-link:before {
-  content: '';
+  content: "";
   width: 24px;
   height: 24px;
   display: flex;
@@ -65,7 +63,7 @@ html[data-theme='dark'] .docusaurus-highlight-code-line {
     no-repeat;
 }
 
-html[data-theme='dark'] .header-github-link:before {
+html[data-theme="dark"] .header-github-link:before {
   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='white' d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E")
     no-repeat;
 }
@@ -86,19 +84,16 @@ html[data-theme='dark'] .header-github-link:before {
   background-color: var(--ifm-tabs-color-active);
 }
 
-
-
-html[data-theme='dark'] .themedDocusaurus [fill='#FFFF50'] {
+html[data-theme="dark"] .themedDocusaurus [fill="#FFFF50"] {
   fill: seagreen;
 }
 
-
-html[data-theme='dark'] .DocSearch {
+html[data-theme="dark"] .DocSearch {
   --ifm-background-surface-color: rgba(20, 73, 180, 0.7);
   --docsearch-text-color: var(--ifm-font-color-base);
   --docsearch-muted-color: var(--ifm-color-secondary-darkest);
   --docsearch-container-background: rgba(47, 55, 69, 0.7);
-  
+
   /* Modal */
   --docsearch-modal-background: var(--ifm-background-color);
 
@@ -119,10 +114,10 @@ html[data-theme='dark'] .DocSearch {
 }
 
 .navbar {
-  background-color:  #0e1217;
+  background-color: #0e1217;
 }
 
-div[class^='announcementBar_'] {
+div[class^="announcementBar_"] {
   --site-announcement-bar-stripe-color1: hsl(
     var(--site-primary-hue-saturation),
     85%
@@ -149,8 +144,8 @@ img[src] {
   border-radius: 16px;
 }
 
-img[src='/img/logo.png'] {
-  border-radius: 0px;  
+img[src="/img/logo.png"] {
+  border-radius: 0px;
   border: none;
 }
 
@@ -393,18 +388,18 @@ img[src='/img/logo.png'] {
   --ifm-menu-link-padding-vertical: 0.5rem;
 
   --ifm-menu-link-sublist-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 24 24"><path fill="currentcolor" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path></svg>');
-  --ifm-menu-link-sublist-icon-before: url('../../static/img/test.svg');
+  --ifm-menu-link-sublist-icon-before: url("../../static/img/test.svg");
 
   /* table of contents */
   --ifm-toc-padding-vertical: 1rem;
 }
 
-html[data-theme='dark'] {
+html[data-theme="dark"] {
   --ifm-menu-color: var(--white);
   --ifm-link-color: var(--water40);
 }
 
-html[data-theme='dark'] *:focus-visible {
+html[data-theme="dark"] *:focus-visible {
   outline: 2px solid var(--bluecheese40) !important;
 }
 
@@ -438,7 +433,6 @@ article {
 }
 
 /************************ICONS ON MENU ITEMS**************************/
-
 
 /* side contents */
 .table-of-contents {
@@ -484,28 +478,27 @@ article {
   background-size: contain;
 }
 
-div[class^='announcementBar_'] {
+div[class^="announcementBar_"] {
   --docusaurus-announcement-bar-height: 2.5rem;
   background: var(--onion40) !important;
   color: var(--white) !important;
 }
 
 @media screen and (max-width: 1200px) {
-  main .col--3{
+  main .col--3 {
     display: none;
   }
-  main .row > div{
-    max-width: 100%!important;
+  main .row > div {
+    max-width: 100% !important;
   }
 }
 
 @media screen and (max-width: 1000px) {
-  :root{
+  :root {
     --ifm-font-size-base: 100%;
     --dd-h1-font-size: 3rem;
   }
 }
-
 
 /* typography */
 
@@ -542,47 +535,45 @@ div[class^='announcementBar_'] {
 }
 
 /* readability and layout */
-.markdown *{
+.markdown * {
   line-height: 1.75em;
 }
 
 .markdown a,
 summary a,
-.alert a{
-  font-weight: bold;;
+.alert a {
+  font-weight: bold;
 }
 
 .markdown p + ul,
-.markdown p + ol{
+.markdown p + ol {
   margin-top: -1rem;
 }
 
-
-.markdown li{
+.markdown li {
   margin-bottom: 8px;
 }
 
-table{
+table {
   display: table;
   width: 100%;
 }
 
 /* alerts */
 
-div.alert{
+div.alert {
   margin-top: 2rem;
 }
 
-div.alert h5{
+div.alert h5 {
   margin: 0 0 0.25rem 0;
   font-size: 1.3rem;
   line-height: 1em;
 }
 
-div.alert ul{
+div.alert ul {
   margin-top: 0;
 }
-
 
 /* images and media */
 .theme-doc-markdown img {
@@ -639,9 +630,9 @@ details[open] > summary:before {
 }
 
 summary:before {
-  content: '';
+  content: "";
   opacity: 0.6;
-  background-image: url('../../static/img/chevron.svg');
+  background-image: url("../../static/img/chevron.svg");
   background-repeat: no-repeat;
   background-size: 100% 100%;
   width: 2rem;
@@ -680,26 +671,26 @@ p:last-child {
 }
 
 /* algolia search customization */
-.DocSearch-Form{
-  padding:0 4px !important;
+.DocSearch-Form {
+  padding: 0 4px !important;
 }
 .DocSearch-Input {
-height: 85% !important;
+  height: 85% !important;
 }
-.DocSearch-MagnifierLabel,.DocSearch-Reset{
+.DocSearch-MagnifierLabel,
+.DocSearch-Reset {
   padding: 5px !important;
 }
 
-
 .hero__title {
-  font-family: 'Montserrat', sans-serif; /* Or your preferred font */
+  font-family: "Montserrat", sans-serif; /* Or your preferred font */
   font-size: 62px; /* Maintain headline size */
   font-weight: 700; /* Bold for emphasis */
   line-height: 115%;
   text-align: center; /* Center the text */
   /*background: linear-gradient(90deg, #c029f0, #ff00d4a5); /* Gradient from purple to blue */
   -webkit-background-clip: text; /* Clip gradient to text */
- /* -webkit-text-fill-color: transparent; /* Make the text itself transparent */
+  /* -webkit-text-fill-color: transparent; /* Make the text itself transparent */
   /*text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
   margin-top: 2rem;
   transition: transform 0.3s ease, text-shadow 0.3s ease; /* Smooth transition */
