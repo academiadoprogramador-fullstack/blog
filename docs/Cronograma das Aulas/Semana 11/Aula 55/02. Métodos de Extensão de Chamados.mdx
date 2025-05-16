@@ -1,0 +1,49 @@
+## Introdução
+
+Iremos aplicar o padrão ParaEntidade / ParaViewModel utilizando métodos de extensão novamente, agora para Chamados.
+
+## Mapeamento `ViewModel` > `Entidade`
+
+```cs
+public static class ChamadoExtensions
+{
+    public static Chamado ParaEntidade(
+        this FormularioChamadoViewModel formularioVM,
+        List<Equipamento> equipamentos
+    )
+    {
+        Equipamento equipamentoSelecionado = null;
+
+        foreach (var f in equipamentos)
+        {
+            if (f.Id == formularioVM.EquipamentoId)
+                equipamentoSelecionado = f;
+        }
+
+        return new Chamado(
+            formularioVM.Titulo,
+            formularioVM.Descricao,
+            equipamentoSelecionado
+        );
+    }
+}
+```
+
+## Mapeamento `Entidade` > `ViewModel`
+
+```cs
+public static class ChamadoExtensions
+{
+    public static DetalhesChamadoViewModel ParaDetalhesVM(this Chamado chamado)
+    {
+        return new DetalhesChamadoViewModel(
+            chamado.Id,
+            chamado.Titulo,
+            chamado.Descricao,
+            chamado.DataAbertura,
+            chamado.TempoDecorrido,
+            chamado.Equipamento.Nome
+        );
+    }
+}
+```
