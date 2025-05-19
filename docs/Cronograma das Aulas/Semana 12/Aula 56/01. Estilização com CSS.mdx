@@ -1,0 +1,787 @@
+## Introdução
+
+CSS (Cascading Style Sheets), ou **Folhas de Estilo em Cascata**, é uma linguagem usada para **estilizar elementos HTML** em páginas web. Com o CSS, você pode controlar:
+
+- **Cores** (de texto, fundo, bordas etc.)
+- **Fontes** (tipo, tamanho, estilo)
+- **Espaçamento** (margens, preenchimento/padding)
+- **Layout** (posição dos elementos, flexbox, grid)
+- **Efeitos visuais** (sombreamento, transições, animações)
+
+### Exemplo simples:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    h1 {
+      color: blue;
+      font-family: Arial;
+    }
+
+    p {
+      background-color: lightgray;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Olá, mundo!</h1>
+  <p>Este é um parágrafo estilizado com CSS.</p>
+</body>
+</html>
+```
+
+### Tipos de CSS:
+
+1. **Inline** (no próprio elemento HTML):
+
+   ```html
+   <p style="color: red;">Texto em vermelho</p>
+   ```
+2. **Interno** (no `<style>` dentro do `<head>`)
+3. **Externo** (em um arquivo `.css` separado)
+
+CSS é essencial para deixar um site **bonito, responsivo e organizado**. Ele trabalha junto com HTML (estrutura) e JavaScript (interatividade).
+
+## Estilização da Página Inicial (Simples)
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Gestão de Equipamentos</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+
+        background-color: black;
+        color: white;
+
+        margin: 0;
+      }
+
+      a {
+        color: mediumpurple;
+        text-decoration: none;
+      }
+
+      .barra-navegacao {
+        display: flex;
+        align-items: center;
+
+        gap: 10px;
+
+        border-bottom: 1px solid #ffffff;
+
+        padding: 0px 200px;
+      }
+
+      .links-navegacao {
+        display: flex;
+        gap: 20px;
+
+        margin-left: auto;
+
+        list-style: none;
+
+        font-size: 18px;
+      }
+
+      .conteudo {
+        display: flex;
+        gap: 25px;
+
+        margin-top: 25px;
+        padding: 0px 200px;
+      }
+
+      a > .card {
+        color: white;
+      }
+
+      .card {
+        width: 350px;
+        height: 150px;
+
+        padding: 5px 25px;
+
+        border: 2px solid white;
+        border-radius: 9px;
+      }
+
+      .card > h3 {
+        color: mediumpurple;
+      }
+
+      .card > p {
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="barra-navegacao">
+      <h2>Gestão de Equipamentos</h2>
+
+      <ul class="links-navegacao">
+        <li><a href="/">Página Inicial</a></li>
+        <li><a href="/fabricantes/visualizar">Fabricantes</a></li>
+        <li><a href="/equipamentos/visualizar">Equipamentos</a></li>
+        <li><a href="/chamados/visualizar">Chamados</a></li>
+      </ul>
+    </nav>
+
+    <main class="conteudo">
+      <a href="/fabricantes/visualizar">
+        <div class="card">
+          <h3>Fabricantes</h3>
+
+          <p>Gerencie os Fabricantes de Equipamentos</p>
+        </div>
+      </a>
+
+      <a href="/equipamentos/visualizar">
+        <div class="card">
+          <h3>Equipamentos</h3>
+
+          <p>Gerencie os Equipamentos</p>
+        </div>
+      </a>
+
+      <a href="/fabricantes/visualizar">
+        <div class="card">
+          <h3>Fabricantes</h3>
+
+          <p>Gerencie os Chamados de Manutenção</p>
+        </div>
+      </a>
+    </main>
+  </body>
+</html>
+```
+
+## Estilização da Página Inicial (Com Media Query e Variáveis CSS)
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Gestão de Equipamentos</title>
+
+    <style>
+      /* regras gerais */
+      :root {
+        --fundo-primario: #1e1e1e;
+        --fundo-secundario: #2c2c2e;
+        --texto-neutro: #f1f1f1;
+        --texto-primario: #ec6afa;
+        --cor-borda: #3a3a3c;
+        --cor-borda-hover: #38383a;
+      }
+
+      body {
+        margin: 0;
+
+        color: var(--texto-primario);
+        background-color: var(--fundo-primario);
+        font-family: Arial, sans-serif;
+      }
+
+      a {
+        color: var(--texto-primario);
+
+        text-decoration: none;
+
+        transition: color 0.2s ease;
+      }
+
+      a:hover {
+        color: #b084d1;
+      }
+
+      /* barra de navegação */
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        padding: 20px 200px;
+
+        background-color: var(--fundo-secundario);
+
+        border-bottom: 1px solid var(--cor-borda);
+      }
+
+      nav h2 {
+        margin: 0;
+
+        font-size: 24px;
+
+        color: var(--texto-neutro);
+      }
+
+      nav ul {
+        display: flex;
+        gap: 20px;
+
+        list-style: none;
+
+        margin: 0;
+        padding: 0;
+
+        font-size: 18px;
+      }
+
+      /* cabeçalho da página */
+      header {
+        padding: 20px 200px;
+
+        border-bottom: 1px solid var(--cor-borda);
+      }
+
+      header .titulo-pagina {
+        color: var(--texto-neutro);
+      }
+
+      header .botao-cadastrar {
+        padding: 10px 10px;
+
+        color: black;
+        background-color: #b084d1;
+
+        border: 1px solid #b084d1;
+        border-radius: 9px;
+      }
+
+      /* conteúdo principal */
+      main {
+        display: flex;
+        flex-wrap: wrap;
+
+        gap: 25px;
+
+        margin-top: 25px;
+        padding: 0px 200px;
+      }
+
+      .card {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        width: 350px;
+        height: 150px;
+        padding: 20px;
+
+        background-color: var(--fundo-secundario);
+
+        border: 1px solid var(--cor-borda);
+        border-radius: 12px;
+
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      .card:hover {
+        background-color: var(--cor-borda-hover);
+
+        transform: scale(1.02);
+      }
+
+      .card h3 {
+        color: var(--texto-primario);
+
+        margin: 0 0 10px 0;
+      }
+
+      .card p {
+        font-size: 16px;
+
+        color: var(--texto-neutro);
+
+        margin: 2px 0;
+      }
+
+      .botoes-interacao {
+        margin-top: 20px;
+        margin-left: auto;
+      }
+
+      .botoes-interacao a[type="button"] {
+        padding: 5px 10px;
+
+        color: black;
+        background-color: #b084d1;
+
+        border: 1px solid #b084d1;
+        border-radius: 9px;
+      }
+
+      @@media (max-width: 768px) {
+        nav,
+        main {
+          padding: 20px;
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        header {
+          padding: 20px;
+        }
+
+        main {
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h2>Gestão de Equipamentos</h2>
+
+      <ul>
+        <li><a href="/">Início</a></li>
+        <li><a href="/fabricantes/visualizar">Fabricantes</a></li>
+        <li><a href="/equipamentos/visualizar">Equipamentos</a></li>
+        <li><a href="/chamados/visualizar">Chamados</a></li>
+      </ul>
+    </nav>
+
+    <header>
+      <h2 class="titulo-pagina">Página Inicial</h2>
+    </header>
+
+    <main>
+      <a href="/fabricantes/visualizar">
+        <div class="card">
+          <h3>Fabricantes</h3>
+
+          <p>Gerencie os Fabricantes de Equipamentos</p>
+        </div>
+      </a>
+
+      <a href="/equipamentos/visualizar">
+        <div class="card">
+          <h3>Equipamentos</h3>
+
+          <p>Gerencie os Equipamentos</p>
+        </div>
+      </a>
+
+      <a href="/fabricantes/visualizar">
+        <div class="card">
+          <h3>Chamados</h3>
+
+          <p>Gerencie os Chamados de Manutenção</p>
+        </div>
+      </a>
+    </main>
+  </body>
+</html>
+```
+
+## Estilização da Visualização de Fabricantes (Com Media Query e Variáveis CSS)
+
+```html
+@using GestaoDeEquipamentos.ConsoleApp.Models @using
+GestaoDeEquipamentos.ConsoleApp.ModuloFabricante @model
+VisualizarFabricantesViewModel;
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Visualização de Fabricantes - Gestão de Equipamentos</title>
+
+    <style>
+      /* regras gerais */
+      :root {
+        --fundo-primario: #1e1e1e;
+        --fundo-secundario: #2c2c2e;
+        --texto-neutro: #f1f1f1;
+        --texto-primario: #ec6afa;
+        --cor-borda: #3a3a3c;
+        --cor-borda-hover: #38383a;
+      }
+
+      body {
+        margin: 0;
+
+        color: var(--texto-primario);
+        background-color: var(--fundo-primario);
+        font-family: Arial, sans-serif;
+      }
+
+      a {
+        color: var(--texto-primario);
+
+        text-decoration: none;
+
+        transition: color 0.2s ease;
+      }
+
+      a:hover {
+        color: #b084d1;
+      }
+
+      /* barra de navegação */
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        padding: 20px 200px;
+
+        background-color: var(--fundo-secundario);
+
+        border-bottom: 1px solid var(--cor-borda);
+      }
+
+      nav h2 {
+        margin: 0;
+
+        font-size: 24px;
+
+        color: var(--texto-neutro);
+      }
+
+      nav ul {
+        display: flex;
+        gap: 20px;
+
+        list-style: none;
+
+        margin: 0;
+        padding: 0;
+
+        font-size: 18px;
+      }
+
+      /* cabeçalho da página */
+      header {
+        padding: 20px 200px;
+
+        border-bottom: 1px solid var(--cor-borda);
+      }
+
+      header .titulo-pagina {
+        color: var(--texto-neutro);
+      }
+
+      header .botao-cadastrar {
+        padding: 10px 10px;
+
+        color: black;
+        background-color: #ec6afa;
+
+        border: 1px solid #ec6afa;
+        border-radius: 9px;
+      }
+
+      /* conteúdo principal */
+      main {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 25px;
+
+        margin-top: 25px;
+        padding: 0px 200px;
+      }
+
+      .card {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        width: 350px;
+        height: 150px;
+        padding: 20px;
+
+        background-color: var(--fundo-secundario);
+        border: 1px solid var(--cor-borda);
+        border-radius: 12px;
+
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      .card:hover {
+        background-color: var(--cor-borda-hover);
+
+        transform: scale(1.02);
+      }
+
+      .card h3 {
+        color: var(--texto-primario);
+
+        margin: 0 0 10px 0;
+      }
+
+      .card p {
+        font-size: 16px;
+
+        color: var(--texto-neutro);
+
+        margin: 2px 0;
+      }
+
+      .botoes-interacao {
+        margin-top: 20px;
+        margin-left: auto;
+      }
+
+      .botoes-interacao a[type="button"] {
+        padding: 5px 10px;
+
+        color: black;
+        background-color: #b084d1;
+
+        border: 1px solid #b084d1;
+        border-radius: 9px;
+      }
+
+      @@media (max-width: 768px) {
+        nav,
+        main {
+          padding: 20px;
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        header {
+          padding: 20px;
+        }
+
+        main {
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h2>Gestão de Equipamentos</h2>
+
+      <ul>
+        <li><a href="/">Início</a></li>
+        <li><a href="/fabricantes/visualizar">Fabricantes</a></li>
+        <li><a href="/equipamentos/visualizar">Equipamentos</a></li>
+        <li><a href="/chamados/visualizar">Chamados</a></li>
+      </ul>
+    </nav>
+
+    <header>
+      <h2 class="titulo-pagina">Visualização de Fabricantes</h2>
+
+      <a href="/fabricantes/cadastrar" type="button" class="botao-cadastrar"
+        >Cadastrar Novo Fabricante</a
+      >
+    </header>
+
+    <main>
+      @foreach (DetalhesFabricanteViewModel f in Model.Registros) {
+      <div class="card">
+        <h3>@f.Nome</h3>
+
+        <p><strong>Email:</strong> @f.Email</p>
+        <p><strong>Telefone:</strong> @f.Telefone</p>
+
+        <div class="botoes-interacao">
+          <a type="button" href="/fabricantes/editar/@f.Id">Editar</a>
+          <a type="button" href="/fabricantes/excluir/@f.Id">Excluir</a>
+        </div>
+      </div>
+      }
+    </main>
+  </body>
+</html>
+```
+
+## Estilização do Cadastro de Fabricante (Com Media Query e Variáveis CSS)
+
+```html
+@using GestaoDeEquipamentos.ConsoleApp.Models
+@model CadastrarFabricanteViewModel;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Cadastro de Fabricante - Gestão de Equipamentos</title>
+
+    <style>
+        :root {
+            --fundo-primario: #1e1e1e;
+            --fundo-secundario: #2c2c2e;
+            --texto-neutro: #f1f1f1;
+            --texto-primario: #9b59b6;
+            --cor-borda: #3a3a3c;
+            --cor-borda-hover: #38383a;
+        }
+
+        body {
+            margin: 0;
+
+            font-family: Arial, sans-serif;
+
+            background-color: var(--fundo-primario);
+            color: var(--texto-neutro);
+        }
+
+        a {
+            color: var(--texto-primario);
+
+            text-decoration: none;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 20px 200px;
+
+            background-color: var(--fundo-secundario);
+
+            border-bottom: 1px solid var(--cor-borda);
+        }
+
+        nav h2 {
+            margin: 0;
+
+            font-size: 24px;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 20px;
+
+            list-style: none;
+
+            margin: 0;
+            padding: 0;
+
+            font-size: 18px;
+        }
+
+        header {
+            padding: 20px 200px;
+            border-bottom: 1px solid var(--cor-borda);
+        }
+
+        header .titulo-pagina {
+            color: var(--texto-neutro);
+        }
+
+        main {
+            padding: 40px 200px;
+        }
+
+        h3 {
+            color: var(--texto-primario);
+        }
+
+        form {
+            background-color: var(--fundo-secundario);
+
+            border: 1px solid var(--cor-borda);
+            border-radius: 12px;
+
+            padding: 30px;
+            max-width: 600px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+
+            font-weight: bold;
+            font-size: 18px;
+
+            color: var(--texto-neutro);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            height: 36px;
+            margin-bottom: 20px;
+
+            font-size: 18px;
+
+            border: 1px solid var(--cor-borda);
+            border-radius: 6px;
+
+            background-color: var(--fundo-primario);
+            color: var(--texto-neutro);
+        }
+
+        button {
+            width: 120px;
+            padding: 10px 20px;
+
+            background-color: #b084d1;
+            color: black;
+
+            border: 1px solid #b084d1;
+            border-radius: 9px;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #a06acc;
+        }
+
+        @@media (max-width: 768px) {
+            nav, main {
+                padding: 20px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            header {
+                padding: 20px;
+            }
+
+            form {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <h2>Gestão de Equipamentos</h2>
+
+        <ul>
+            <li><a href="/">Início</a></li>
+            <li><a href="/fabricantes/visualizar">Fabricantes</a></li>
+            <li><a href="/equipamentos/visualizar">Equipamentos</a></li>
+            <li><a href="/chamados/visualizar">Chamados</a></li>
+        </ul>
+    </nav>
+
+    <header>
+        <h2 class="titulo-pagina">Cadastro de Fabricante</h2>
+    </header>
+
+    <main>
+        <form action="/fabricantes/cadastrar" method="post">
+            <label>Nome do Fabricante:</label>
+            <input type="text" name="nome" />
+
+            <label>Email do Fabricante:</label>
+            <input type="text" name="email" />
+
+            <label>Telefone do Fabricante:</label>
+            <input type="text" name="telefone" />
+
+            <button type="submit">Gravar</button>
+        </form>
+    </main>
+</body>
+</html>
+```
